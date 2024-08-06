@@ -1,5 +1,3 @@
-Sure! Here's a `README.md` file for your GitHub repository:
-
 ```markdown
 # Subdomain Finder Automation Script
 
