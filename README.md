@@ -53,10 +53,3 @@ Make sure you have the following tools installed:
 ```
 
 The results will be saved in `alive_subdomain.txt`.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-```
-
-Feel free to customize the repository URL, project name, or any other details as needed.
