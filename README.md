@@ -23,13 +23,13 @@ Make sure you have the following tools installed:
 2. Make the script executable:
 
    ```bash
-   chmod +x find_subdomains.sh
+   chmod +x snortsub.sh
    ```
 
 3. Run the script with a domain as an argument:
 
    ```bash
-   ./livesub.sh example.com
+   ./snortsub.sh example.com
    ```
 
 ## How It Works
@@ -49,7 +49,7 @@ Make sure you have the following tools installed:
 ## Example
 
 ```bash
-./livesub.sh example.com
+./snortsub.sh example.com
 ```
 
 The results will be saved in `alive_subdomain.txt`.
