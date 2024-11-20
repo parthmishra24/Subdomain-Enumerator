@@ -1,4 +1,4 @@
-!/bin/bash
+#!/bin/bash
 
 # Check if a domain is provided
 if [ -z "$1" ]; then
@@ -8,17 +8,12 @@ fi
 
 DOMAIN=$1
 
-# Run subfinder
-echo "[*] Running subfinder..."
-subfinder -d $DOMAIN -all > subdomain.txt
-
-# Run assetfinder
-echo "[*] Running assetfinder..."
-assetfinder -subs-only $DOMAIN > subdomain1.txt
-
-# Sort and remove duplicates
-echo "[*] Sorting and removing duplicates..."
-sort -u subdomain.txt subdomain1.txt > mainsubdomain.txt
+# Run subfinder and assetfinder, sort, and remove duplicates
+echo "[*] Running subfinder and assetfinder, then sorting and removing duplicates..."
+{
+  subfinder -d $DOMAIN -all
+  assetfinder -subs-only $DOMAIN
+} | sort -u > mainsubdomain.txt
 
 # Run httpx to find alive subdomains
 echo "[*] Checking alive subdomains with httpx..."
