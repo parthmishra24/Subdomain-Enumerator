@@ -1,4 +1,3 @@
-```markdown
 # Subdomain Finder Automation Script
 
 This script automates the process of finding subdomains using `subfinder` and `assetfinder`, then checks which subdomains are alive using `httpx`.
@@ -15,8 +14,10 @@ Make sure you have the following tools installed:
 
 1. Clone the repository:
 
-   ```bash
+   ```
    git clone https://github.com/parthmishra24/Subdomain-Enumrator.git
+   ```
+   ```
    cd Subdomain-Enumrator
    ```
 
