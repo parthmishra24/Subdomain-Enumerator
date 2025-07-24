@@ -23,7 +23,7 @@ This script automates the process of finding subdomains using `subfinder` and `a
 
 ## Prerequisites
 
-Make sure you have the following tools installed:
+This tool relies on a few external utilities:
 
 - [subfinder](https://github.com/projectdiscovery/subfinder)
 - [assetfinder](https://github.com/tomnomnom/assetfinder)
@@ -31,28 +31,18 @@ Make sure you have the following tools installed:
 - [amass](https://github.com/owasp-amass/amass) (optional, for additional enumeration)
 - [dnsx](https://github.com/projectdiscovery/dnsx) (optional, for DNS verification)
 
+You can install all of them automatically using the included `install.sh` script.
+
 ### Installing Dependencies
 
-If you don't have these tools installed, you can install them using the following commands:
+Run the install script to download the required tools:
 
 ```bash
-# Install subfinder
-go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-
-# Install assetfinder
-go install -v github.com/tomnomnom/assetfinder@latest
-
-# Install httpx
-go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
-
-# Optional: Install amass
-go install -v github.com/owasp-amass/amass/v3/...@latest
-
-# Optional: Install dnsx
-go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
+chmod +x install.sh
+./install.sh
 ```
 
-Note: These commands require Go to be installed on your system.
+The script uses `go install` under the hood, so make sure Go is installed on your system.
 
 ## Usage
 

@@ -123,19 +123,14 @@ check_dependencies() {
   if [ ${#missing_deps[@]} -ne 0 ]; then
     error_echo "Missing dependencies: ${missing_deps[*]}"
     echo ""
-    echo "Installation instructions:"
-    echo "  - subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
-    echo "  - assetfinder: go install -v github.com/tomnomnom/assetfinder@latest"
-    echo "  - httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
-    echo "  - amass: go install -v github.com/owasp-amass/amass/v3/...@latest"
-    echo "  - dnsx: go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
-    
+    echo "Run ./install.sh to automatically download the required tools."
+
     if [[ " ${missing_deps[*]} " =~ " awk " || " ${missing_deps[*]} " =~ " grep " || " ${missing_deps[*]} " =~ " sort " ]]; then
-      echo "  - Core utilities (awk, grep, sort): These should be available on most systems."
-      echo "    On macOS: brew install coreutils"
-      echo "    On Ubuntu/Debian: apt-get install coreutils"
+      echo "Core utilities (awk, grep, sort) should be available on most systems."
+      echo "On macOS: brew install coreutils"
+      echo "On Ubuntu/Debian: apt-get install coreutils"
     fi
-    
+
     exit $ERROR_DEPENDENCY
   fi
   
