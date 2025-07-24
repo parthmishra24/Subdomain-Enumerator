@@ -12,6 +12,12 @@ This script automates the process of finding subdomains using `subfinder` and `a
 - Cleanup option for temporary files
 - Verbose and quiet modes
 - Comprehensive error handling
+- JSON output support
+- Filter results by status code
+- Authentication-based URL filtering
+- Chunked processing for large subdomain lists
+- Resume interrupted scans
+- Toggle progress bar display
 
 ## Prerequisites
 
@@ -72,8 +78,15 @@ Options:
   -v, --verbose           Enable verbose output
   -q, --quiet             Suppress non-error messages
   -c, --cleanup           Remove temporary files after execution
-  -r, --rate-limit RATE   Set rate limit for httpx (e.g., '100' for 100 requests/second)
+  -r, --rate-limit RATE   Set rate limit for httpx using its `-rate` option (e.g., '100' for 100 requests/second)
   -o, --output-dir DIR    Specify output directory (default: current directory)
+  -j, --json              Output results in JSON format
+  -s, --status-code CODE  Filter results by status code (e.g., '200' or '200,301,302')
+  --no-auth               Filter out authentication-based URLs (containing @ symbol)
+  --auth-only             Show only authentication-based URLs
+  --chunk-size SIZE       Process subdomains in chunks of SIZE (default: 1000)
+  --resume FILE           Resume from a previous scan state file
+  --no-progress           Disable progress bar display
 ```
 
 ## How It Works
@@ -117,6 +130,26 @@ Combining multiple options:
 ./snortsub.sh -v -c -r 100 -o /path/to/results example.com
 ```
 
+Output results in JSON format:
+```bash
+./snortsub.sh -j example.com
+```
+
+Filter by status code 200:
+```bash
+./snortsub.sh -s 200 example.com
+```
+
+Process subdomains in smaller chunks:
+```bash
+./snortsub.sh --chunk-size 500 example.com
+```
+
+Resume a previous scan:
+```bash
+./snortsub.sh --resume state.json example.com
+```
+
 ## Features in Detail
 
 ### Rate Limiting
@@ -151,6 +184,26 @@ Enable cleanup mode with `-c` or `--cleanup` to automatically remove temporary f
 - **Quiet Mode** (`-q` or `--quiet`): Suppresses all non-error messages, useful for automated scripts.
 
 These modes can't be used together effectively, as quiet mode overrides verbose output.
+
+### JSON Output
+
+Enable JSON output with `-j` or `--json` to save results in machine-readable format.
+
+### Status Code Filtering
+
+Use `-s` or `--status-code` to only keep results with specific HTTP status codes.
+
+### Authentication Filtering
+
+`--no-auth` filters out URLs containing an `@` symbol. Use `--auth-only` to show only those URLs.
+
+### Chunked Processing and Resume
+
+The `--chunk-size` option processes subdomains in smaller batches, which is useful for large lists. You can resume an interrupted scan with `--resume <state_file>`.
+
+### Progress Bar Control
+
+Disable the progress bar with `--no-progress` if you prefer less output.
 
 ## Error Handling
 

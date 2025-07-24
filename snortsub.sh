@@ -464,7 +464,7 @@ FILTERED_OUTPUT_FILE="$OUTPUT_DIR/filtered_results.txt"
 # Build httpx command
 HTTPX_CMD="httpx -sc"
 if [ -n "$RATE_LIMIT" ]; then
-  HTTPX_CMD="$HTTPX_CMD -rate-limit $RATE_LIMIT"
+  HTTPX_CMD="$HTTPX_CMD -rate $RATE_LIMIT"
   verbose_echo "Using rate limit: $RATE_LIMIT requests/second"
 fi
 
