@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Script version
-VERSION="1.3.0"
+VERSION="1.4.0"
 
 # Exit codes
 SUCCESS=0
@@ -25,6 +25,8 @@ RESUME=false
 SHOW_PROGRESS=true
 TEMP_FILES=("mainsubdomain.txt")
 RESUME_FILE=""
+USE_AMASS=false
+VERIFY_DNS=false
 
 # Track start time for duration calculation
 START_TIME=$(date +%s)
@@ -96,6 +98,14 @@ check_dependencies() {
   if ! command_exists httpx; then
     missing_deps+=("httpx")
   fi
+
+  if $USE_AMASS && ! command_exists amass; then
+    missing_deps+=("amass")
+  fi
+
+  if $VERIFY_DNS && ! command_exists dnsx; then
+    missing_deps+=("dnsx")
+  fi
   
   # Check for required utilities
   if ! command_exists awk; then
@@ -117,6 +127,8 @@ check_dependencies() {
     echo "  - subfinder: go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest"
     echo "  - assetfinder: go install -v github.com/tomnomnom/assetfinder@latest"
     echo "  - httpx: go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest"
+    echo "  - amass: go install -v github.com/owasp-amass/amass/v3/...@latest"
+    echo "  - dnsx: go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest"
     
     if [[ " ${missing_deps[*]} " =~ " awk " || " ${missing_deps[*]} " =~ " grep " || " ${missing_deps[*]} " =~ " sort " ]]; then
       echo "  - Core utilities (awk, grep, sort): These should be available on most systems."
@@ -300,6 +312,8 @@ show_help() {
   echo "  --chunk-size SIZE       Process subdomains in chunks of SIZE (default: 1000)"
   echo "  --resume FILE           Resume from a previous scan state file"
   echo "  --no-progress           Disable progress bar display"
+  echo "  --amass                 Include passive results from amass"
+  echo "  --dnsx                  Verify DNS resolution with dnsx before running httpx"
   echo ""
   echo "Examples:"
   echo "  $0 example.com                        # Basic usage"
@@ -310,6 +324,8 @@ show_help() {
   echo "  $0 --no-auth example.com              # Filter out auth-based URLs"
   echo "  $0 --chunk-size 500 example.com       # Process in smaller chunks"
   echo "  $0 --resume state.json example.com    # Resume an interrupted scan"
+  echo "  $0 --amass example.com               # Include amass results"
+  echo "  $0 --dnsx example.com                # Verify DNS before probing"
   echo ""
 }
 
@@ -402,6 +418,14 @@ while [[ $# -gt 0 ]]; do
       SHOW_PROGRESS=false
       shift
       ;;
+    --amass)
+      USE_AMASS=true
+      shift
+      ;;
+    --dnsx)
+      VERIFY_DNS=true
+      shift
+      ;;
     -r|--rate-limit)
       if [[ -z "$2" || "$2" =~ ^- ]]; then
         error_echo "Error: --rate-limit requires a numeric argument"
@@ -489,8 +513,20 @@ info_echo "Running subfinder for domain: $DOMAIN"
     error_echo "Try running 'assetfinder -subs-only $DOMAIN' directly to see the error"
     exit $ERROR_DEPENDENCY
   fi
-  
-  progress_echo "Assetfinder completed, now processing results..."
+
+  if $USE_AMASS; then
+    progress_echo "Assetfinder completed, now running amass..."
+    info_echo "Running amass for domain: $DOMAIN"
+    verbose_echo "Executing: amass enum -passive -d $DOMAIN"
+
+    if ! amass enum -passive -d "$DOMAIN"; then
+      error_echo "Amass failed or returned non-zero exit code"
+      error_echo "Try running 'amass enum -passive -d $DOMAIN' directly to see the error"
+      exit $ERROR_DEPENDENCY
+    fi
+  fi
+
+  progress_echo "Enumeration completed, now processing results..."
 } | sort -u > "$MAIN_SUBDOMAIN_FILE" || {
   error_echo "Failed to write to $MAIN_SUBDOMAIN_FILE"
   exit $ERROR_FILE_OPERATION
@@ -510,6 +546,21 @@ cp "$MAIN_SUBDOMAIN_FILE" "$ALL_SUBDOMAINS_FILE" || {
   error_echo "Failed to create backup of discovered subdomains"
   exit $ERROR_FILE_OPERATION
 }
+
+# Verify DNS resolution with dnsx if requested
+if $VERIFY_DNS; then
+  info_echo "Verifying DNS resolution with dnsx..."
+  DNSX_OUTPUT_FILE="$OUTPUT_DIR/resolved_subdomains.txt"
+  TEMP_FILES+=("resolved_subdomains.txt")
+  if ! dnsx -silent -l "$MAIN_SUBDOMAIN_FILE" > "$DNSX_OUTPUT_FILE"; then
+    error_echo "dnsx failed or returned non-zero exit code"
+    error_echo "Try running 'dnsx -silent -l $MAIN_SUBDOMAIN_FILE' directly to see the error"
+    exit $ERROR_DEPENDENCY
+  fi
+  mv "$DNSX_OUTPUT_FILE" "$MAIN_SUBDOMAIN_FILE"
+  SUBDOMAIN_COUNT=$(wc -l < "$MAIN_SUBDOMAIN_FILE" | tr -d ' ')
+  info_echo "After dnsx verification: $SUBDOMAIN_COUNT subdomains"
+fi
 
 # Initialize chunk processing variables
 TOTAL_CHUNKS=$(( (SUBDOMAIN_COUNT + CHUNK_SIZE - 1) / CHUNK_SIZE ))
