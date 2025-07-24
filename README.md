@@ -42,20 +42,22 @@ Note: These commands require Go to be installed on your system.
 
 1. Clone the repository:
 
-   ```bash
+   ```
    git clone https://github.com/parthmishra24/Subdomain-Enumerator.git
+   ```
+   ```
    cd Subdomain-Enumerator
    ```
 
 2. Make the script executable:
 
-   ```bash
+   ```
    chmod +x snortsub.sh
    ```
 
 3. Run the script with a domain as an argument:
 
-   ```bash
+   ```
    ./snortsub.sh example.com
    ```
 
