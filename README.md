@@ -18,6 +18,8 @@ This script automates the process of finding subdomains using `subfinder` and `a
 - Chunked processing for large subdomain lists
 - Resume interrupted scans
 - Toggle progress bar display
+- Optional enumeration with [amass](https://github.com/owasp-amass/amass)
+- DNS resolution verification using [dnsx](https://github.com/projectdiscovery/dnsx)
 
 ## Prerequisites
 
@@ -26,6 +28,8 @@ Make sure you have the following tools installed:
 - [subfinder](https://github.com/projectdiscovery/subfinder)
 - [assetfinder](https://github.com/tomnomnom/assetfinder)
 - [httpx](https://github.com/projectdiscovery/httpx)
+- [amass](https://github.com/owasp-amass/amass) (optional, for additional enumeration)
+- [dnsx](https://github.com/projectdiscovery/dnsx) (optional, for DNS verification)
 
 ### Installing Dependencies
 
@@ -40,6 +44,12 @@ go install -v github.com/tomnomnom/assetfinder@latest
 
 # Install httpx
 go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+
+# Optional: Install amass
+go install -v github.com/owasp-amass/amass/v3/...@latest
+
+# Optional: Install dnsx
+go install -v github.com/projectdiscovery/dnsx/cmd/dnsx@latest
 ```
 
 Note: These commands require Go to be installed on your system.
@@ -89,6 +99,8 @@ Options:
   --chunk-size SIZE       Process subdomains in chunks of SIZE (default: 1000)
   --resume FILE           Resume from a previous scan state file
   --no-progress           Disable progress bar display
+  --amass                 Include passive results from amass
+  --dnsx                  Verify DNS resolution with dnsx before running httpx
 ```
 
 ## How It Works
@@ -96,9 +108,11 @@ Options:
 1. The script checks if all required dependencies are installed.
 2. It then runs `subfinder` to find subdomains.
 3. Next, it runs `assetfinder` to find more subdomains.
-4. It sorts and removes duplicate subdomains from both tools, saving the result to `mainsubdomain.txt`.
-5. Finally, it uses `httpx` to check which subdomains are alive and saves the output to `alive_subdomain.txt`.
-6. If the cleanup option is enabled, it removes temporary files after execution.
+4. If the `--amass` option is used, it also runs `amass` in passive mode for additional results.
+5. It sorts and removes duplicate subdomains from the enumeration tools, saving the result to `mainsubdomain.txt`.
+6. If the `--dnsx` option is provided, the list is verified with `dnsx` to keep only resolving hosts.
+7. Finally, it uses `httpx` to check which subdomains are alive and saves the output to `alive_subdomain.txt`.
+8. If the cleanup option is enabled, it removes temporary files after execution.
 
 ## Output Files
 
@@ -150,6 +164,16 @@ Process subdomains in smaller chunks:
 Resume a previous scan:
 ```bash
 ./snortsub.sh --resume state.json example.com
+```
+
+Include amass results:
+```bash
+./snortsub.sh --amass example.com
+```
+
+Verify DNS resolution before probing:
+```bash
+./snortsub.sh --dnsx example.com
 ```
 
 ## Features in Detail
@@ -206,6 +230,14 @@ The `--chunk-size` option processes subdomains in smaller batches, which is usef
 ### Progress Bar Control
 
 Disable the progress bar with `--no-progress` if you prefer less output.
+
+### Amass Integration
+
+Enable `--amass` to include results from the Amass passive enumeration engine. This can uncover additional subdomains from multiple data sources.
+
+### DNS Verification
+
+Use `--dnsx` to verify that discovered domains resolve before sending them to `httpx`. This helps reduce noise and speeds up the alive check step.
 
 ## Error Handling
 
